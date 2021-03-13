@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Kepler4Neo</title>
+</head>
+<body>
+    <div id="main">The power of KeplerGL and Neo4j Together!</div>
+    
+    <div>
+        <span><b>Created by Menome Technologies, Maintained by Arcurve</b></span>
+        <ul id="labels">
+        </ul>
+    </div>
+    
+</body>
+
+<script src="https://unpkg.com/neo4j-driver"></script>
+<script>
+    if (window.neo4jDesktopApi) {
+        let mainDiv = document.getElementById("main");
+        neo4jDesktopApi.getContext()
+            .then((context) => {
+                for (let project of context.projects) {
+                    const projectEl = document.createElement('div');
+                    projectEl.style.cssText = "font-weight: bold";
+                    projectEl.appendChild(document.createTextNode(project.name));
+                    mainDiv.appendChild(projectEl);
+                    const listEl = document.createElement('ul');
+                    for (let graph of project.graphs) {
+                        const listItemFragment = document.createDocumentFragment();
+                        const text = document.createTextNode(graph.name + ' (' + graph.description +') ');
+                        const listItem = document.createElement('li');
+                        listItem.appendChild(text);
+                        listItemFragment.appendChild(listItem);
+                        listEl.appendChild(listItemFragment);
+                    }
+                    mainDiv.appendChild(listEl);
+                }
+            }
+        ); 
+
+        //query the active graph
+        neo4jDesktopApi.getContext()
+            .then((context) => {
+                for (let project of context.projects) {
+                    for (let graph of project.graphs) {
+                        if (graph.status === 'ACTIVE') {
+                            //obtain the bolt protocol which has all the connection details
+                            let boltProtocol = graph.connection.configuration.protocols.bolt;
+                            
+                            let driver = neo4j.v1.driver(boltProtocol.url, neo4j.v1.auth.basic(boltProtocol.username, boltProtocol.password));
+
+                            //Create a session and execute a query
+                            let session = driver.session();
+                            session.run("CALL db.labels() YIELD label RETURN label ORDER BY label")
+                                .then(result => {
+                                    if (result.records && result.records.length>0) {
+                                        let labelsList = document.getElementById("labels");
+                                        for (var i = 0; i < result.records.length; i++) {
+                                            const r = result.records[i]
+                                            const labelItem = document.createElement('li');
+                                            labelItem.appendChild(document.createTextNode(r.get('label')));
+                                            labelsList.appendChild(labelItem);
+                                        }
+                                    }
+                                })
+                                .catch(function(error) {
+                                    console.log(error);
+                                });
+
+                        }    
+                    }
+                }
+                
+            });
+
+    }
+
+    
+
+</script>
+<footer><small>Icons from https://www.iconfinder.com/iconsets/spring-2-1</small></footer>
+</html>
