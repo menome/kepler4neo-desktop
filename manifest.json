@@ -1,0 +1,15 @@
+{
+    "name": "kepler4neo-deskop",
+    "description": "The power of kepler augmented by graphs!",
+    "icons": [
+      {
+        "src": "./logo.png",
+        "type": "png"
+      },
+      {
+        "src": "data:image/svg+xml;base64,[data]",
+        "type": "data"
+      }
+    ],
+    "homepage": "https://github.com/menome/kepler4neo-desktop"
+  }
